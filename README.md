@@ -1,15 +1,3 @@
-TorRequest
-==========
-
-A simple Python interface for HTTP(s) requests over
-[Tor](https://www.torproject.org). 
-```python
-from torrequest import TorRequest
-
-with TorRequest() as tr:
-  response = tr.get('http://ipecho.net/plain')
-  print(response.text)  # not your IP address
-```
 
 It's basically a wrapper around [Stem](https://stem.torproject.org) and
 [Requests](http://docs.python-requests.org/en/master/) libraries.
@@ -23,13 +11,34 @@ brew install tor
 After installation, you may want to configure Tor by creating a `.torrc` file in your `$HOME` directory. More information is available on [Tor
 documentation](https://www.torproject.org/docs/tor-manual.html.en).
 
-## Installation
-After installing dependencies, you can install `torrequest` via PyPI:
-```sh
-pip install torrequest
+example `~/Library/Application\ Support/TorBrowser-Data/Tor/torrc`
+```
+DataDirectory /Applications/TorBrowser.app/TorBrowser/Data/Tor
+GeoIPFile /Applications/TorBrowser.app/TorBrowser/Data/Tor/geoip
+GeoIPv6File /Applications/TorBrowser.app/TorBrowser/Data/Tor/geoip6
+HiddenServiceStatistics 0
+# only for US nodes
+ExitNodes {us}
+StrictNodes 1
 ```
 
 ## Examples
+```python
+from bs4 import BeautifulSoup
+from torrequest import TorRequest
+import http.cookiejar
+from http.cookiejar import LWPCookieJar
+with TorRequest(proxy_port=9150, ctrl_port=9151, password=None) as tr:
+    page = tr.get(first_page).content
+    # to reset your traversal nodes used
+    tr.reset_identity()
+    c = LWPCookieJar()
+    tr.session.cookies.update(c)
+    # return clean soup of the page
+    return BeautifulSoup(page)
+```
+
+
 ```python
 from torrequest import TorRequest
 
@@ -61,8 +70,6 @@ with TorRequest(proxy_port=9050, ctrl_port=9051, password=None) as tr:
   tr.ctrl.signal('CLEARDNSCACHE') # see Stem docs for the full API
 
   print(type(tr.session))         # a requests.Session object
-  c = cookielib.CookieJar()
-  tr.session.cookies.update(c)    # see Requests docs for the full API
 ```
 
 ## License
